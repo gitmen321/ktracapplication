@@ -5,7 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 import 'package:ktracapplication/Theme/color.dart';
-import 'package:ktracapplication/screens/navigation_screen.dart';
+import 'package:ktracapplication/screens/detail_screen.dart';
 import 'package:ktracapplication/widgets/nav_drawer.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -302,7 +302,8 @@ class _HomeScreenState extends State<HomeScreen> {
                     Navigator.push(
                         context,
                         MaterialPageRoute(
-                            builder: (context) => const NavigationScreen()));
+                            builder: (context) => 
+                             DetailScreen()));
                   },
                   child: Container(
                     decoration: BoxDecoration(
