@@ -28,7 +28,20 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text("Home"),
+        toolbarHeight: 60,
+        leading: Builder
+        (builder: (context)=>GestureDetector(
+          onTap: (){
+            Scaffold.of(context).openDrawer();
+          },
+          child:  Container(
+              margin: const EdgeInsets.only(left: 25, top: 15),
+              child: const Icon(Icons.menu_rounded, color: greenlight, size: 40.0),
+            ),
+        ),
+        ),
+        backgroundColor: secondary,
+
       ),
       drawer: const NavDrawer(),
       body: SingleChildScrollView(
@@ -189,7 +202,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         TextStyle(color: primary, fontWeight: FontWeight.w400),
                   ),
                   const SizedBox(height: 10),
-                  const Text('trip type',
+                  const Text('Trip Scheduled',
                       style: TextStyle(
                           fontSize: 12,
                           color: primary,
@@ -197,7 +210,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   const SizedBox(height: 8),
                   SizedBox(
                     width: MediaQuery.of(context).size.width * 0.35,
-                    child: const Text("Scheduled",
+                    child: const Text(" ",
                         maxLines: 2,
                         overflow: TextOverflow.ellipsis,
                         style: TextStyle(

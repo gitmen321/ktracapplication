@@ -25,7 +25,7 @@ class LoginScreen extends StatelessWidget {
                     BlendMode.srcOver,
                   ),
                   child: Image.asset(
-                    'assets/images/ksrtc.jpg',
+                    'assets/images/faris-mohammed-vNeB9rkPLQ4-unsplash.jpg',
                    // 'assets/images/intro.jpeg',
                     fit: BoxFit.cover,
                    // width: double.infinity,
