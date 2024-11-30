@@ -163,7 +163,7 @@ class NavDrawer extends StatelessWidget {
                       // Placeholder for attendance action
                     },
                     child: const Text(
-                      'ATTENDANCE',
+                      'EARNINGS',
                       style: TextStyle(color: Colors.white),
                     ),
                   ),
@@ -179,7 +179,7 @@ class NavDrawer extends StatelessWidget {
                           // Placeholder for change pin
                         },
                         child: const Text(
-                          'CHANGE PIN',
+                          'PASSWORD',
                           style: TextStyle(color: Colors.white),
                         ),
                       ),

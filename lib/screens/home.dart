@@ -22,27 +22,52 @@ class _HomeScreenState extends State<HomeScreen> {
   final tripComplete = 0;
   int _index = 2;
   List<FlSpot> spots = [];
-
+  bool isOnline = false;
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+
+
       appBar: AppBar(
         toolbarHeight: 60,
-        leading: Builder
-        (builder: (context)=>GestureDetector(
-          onTap: (){
-            Scaffold.of(context).openDrawer();
-          },
-          child:  Container(
-              margin: const EdgeInsets.only(left: 25, top: 15),
-              child: const Icon(Icons.menu_rounded, color: greenlight, size: 40.0),
-            ),
+        title: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Container(),
+            Text(isOnline ? 'Online' : 'Offline',
+                style: GoogleFonts.lato(
+                    color: isOnline ? primary : Colors.black , fontSize: 22, fontWeight: FontWeight.w700)),
+            const SizedBox(width: 10),
+            Switch(
+              value: isOnline,
+              onChanged: (value) {
+                setState(() {
+                  isOnline = value;
+                });
+              },
+              activeColor: Colors.white,
+              activeTrackColor: Colors.green,
+              inactiveThumbColor: const Color.fromARGB(182, 255, 255, 255),
+              inactiveTrackColor: const Color.fromARGB(43, 0, 0, 0),
+            )
+          ],
         ),
+        leading: Builder(
+          builder: (context) => GestureDetector(
+            onTap: () {
+              Scaffold.of(context).openDrawer();
+            },
+            child: Container(
+              margin: const EdgeInsets.only(left: 25, top: 15),
+              child:
+                  const Icon(Icons.menu_rounded, color: greenlight, size: 40.0),
+            ),
+          ),
         ),
         backgroundColor: secondary,
-
       ),
+
       drawer: const NavDrawer(),
       body: SingleChildScrollView(
         child: Column(
@@ -73,11 +98,14 @@ class _HomeScreenState extends State<HomeScreen> {
                         onTap: () {
                           // loginController.currentTrip == null ?
                           //     createToastBottom("No trip to start") :
-                          
                         },
                         child: GestureDetector(
-                          onTap: (){
-                            Navigator.push(context, MaterialPageRoute(builder: (context)=>const DetailScreen()));
+                          onTap: () {
+                            Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                    builder: (context) =>
+                                        const DetailScreen()));
                           },
                           child: Container(
                             decoration: BoxDecoration(
@@ -273,108 +301,6 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  // showCheckPinOverLay() async {
-  //   Get.bottomSheet(
-  //     SafeArea(
-  //       child: StatefulBuilder(
-  //         builder: (BuildContext context, StateSetter setState) {
-  //           return SingleChildScrollView(
-  //             child: Container(
-  //               decoration: const BoxDecoration(
-  //                 color: secondary,
-  //                 borderRadius: BorderRadius.only(
-  //                   topLeft: Radius.circular(30),
-  //                   topRight: Radius.circular(30),
-  //                 ),
-  //               ),
-  //               child: Column(
-  //                 children: [
-  //                   const SizedBox(height: 20),
-  //                   const Text(
-  //                     'ENTER YOUR PIN',
-  //                     style: TextStyle(
-  //                         fontSize: 18,
-  //                         fontWeight: FontWeight.w700,
-  //                         color: primary),
-  //                   ),
-  //                   const SizedBox(height: 20),
-  //                   Container(
-  //                     margin: const EdgeInsets.symmetric(horizontal: 20),
-  //                     decoration: BoxDecoration(
-  //                       borderRadius: BorderRadius.circular(30),
-  //                       color: greenlight.withOpacity(.1),
-  //                     ),
-  //                     child: Obx(() => TextFormField(
-  //                           obscureText: _obscureTextPin.value,
-  //                           controller: pinController,
-  //                           maxLength: 4,
-  //                           keyboardType: TextInputType.number,
-  //                           inputFormatters: <TextInputFormatter>[
-  //                             FilteringTextInputFormatter.digitsOnly
-  //                           ],
-  //                           decoration: InputDecoration(
-  //                             counterText: "",
-  //                             prefixIcon: const Icon(Icons.password),
-  //                             prefixIconColor: primary,
-  //                             border: InputBorder.none,
-  //                             labelText: 'PIN',
-  //                             labelStyle: const TextStyle(
-  //                                 color: primary,
-  //                                 fontSize: 15,
-  //                                 fontWeight: FontWeight.w600),
-  //                             suffixIcon: IconButton(
-  //                               icon: Icon(
-  //                                 _obscureTextPin.value
-  //                                     ? Icons.visibility
-  //                                     : Icons.visibility_off,
-  //                                 color: primary,
-  //                               ),
-  //                               onPressed: () => _obscureTextPin.toggle(),
-  //                             ),
-  //                           ),
-  //                         )),
-  //                   ),
-  //                   const SizedBox(height: 20),
-  //                   ElevatedButton(
-  //                     style: ElevatedButton.styleFrom(
-  //                       elevation: 5,
-  //                       backgroundColor: greenlight,
-  //                       shape: RoundedRectangleBorder(
-  //                         borderRadius: BorderRadius.circular(30),
-  //                       ),
-  //                     ),
-  //                     onPressed: () async {
-  //                       if (int.parse(pinController.text) ==
-  //                           loginController.user!.pin) {
-  //                         if (selectedVehicle != null) {
-  //                           Get.offAll(
-  //                               () => NavigationScreen(selectedVehicle!));
-  //                         } else {
-  //                           createToastTop('No vehicle selected');
-  //                         }
-  //                       } else {
-  //                         print('Incorrect PIN');
-  //                         createToastTop('Incorrect PIN');
-  //                       }
-  //                     },
-  //                     child: const Text('SUBMIT',
-  //                         style: TextStyle(
-  //                             color: Colors.white,
-  //                             fontSize: 15,
-  //                             fontWeight: FontWeight.w600)),
-  //                   ),
-  //                   const SizedBox(height: 20),
-  //                 ],
-  //               ),
-  //             ),
-  //           );
-  //         },
-  //       ),
-  //     ),
-  //     isScrollControlled: true,
-  //   );
-  // }
-
   Widget buildTripCard() {
     return Container(
       margin: const EdgeInsets.only(top: 20, bottom: 30, left: 5, right: 5),
@@ -421,27 +347,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                 mainAxisAlignment:
                                     MainAxisAlignment.spaceBetween,
                                 children: [
-                                  // Expanded(
-                                  //   child: Text(
-                                  //     getFirstWords(
-                                  //         loginController.vehicles
-                                  //             .firstWhere(
-                                  //               (vehicle) =>
-                                  //                   vehicle.vehicleNumber ==
-                                  //                   loginController.trips[index]
-                                  //                       .vehicleNumber,
-                                  //             )
-                                  //             .vehicleName,
-                                  //         2),
-                                  //     style: TextStyle(
-                                  //       color: Colors.white.withOpacity(.9),
-                                  //       fontSize: 12,
-                                  //       fontWeight: FontWeight.w300,
-                                  //     ),
-                                  //     overflow: TextOverflow
-                                  //         .ellipsis, // Truncate text with ellipsis
-                                  //   ),
-                                  // ),
+
                                   Icon(
                                     Icons.circle_outlined,
                                     color: Colors.white,
@@ -454,8 +360,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
                                   // Text("${loginController.trips[index].tripStartLocation} - ${loginController.trips[index].tripDestination.}", style: const TextStyle(color:Colors.white, fontSize: 12, fontWeight: FontWeight.bold)),
-                                  const Text(
-                                      "Kannur - Eranakulam",
+                                  const Text("Kannur - Eranakulam",
                                       style: TextStyle(
                                           color: Colors.white,
                                           fontSize: 12,
@@ -465,8 +370,8 @@ class _HomeScreenState extends State<HomeScreen> {
                                         0.20,
                                     color: greenlight,
                                     child: const Padding(
-                                      padding: EdgeInsets.symmetric(
-                                          horizontal: 3.0),
+                                      padding:
+                                          EdgeInsets.symmetric(horizontal: 3.0),
                                       child: Row(
                                         children: [
                                           Icon(
@@ -476,8 +381,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                           ),
                                           SizedBox(width: 3),
                                           //Text(loginController.trips[index].tripDate, style: const TextStyle(color:Colors.white, fontSize: 10, fontWeight: FontWeight.w400)),
-                                          Text(
-                                              ('10/11/2024'),
+                                          Text(('10/11/2024'),
                                               style: TextStyle(
                                                   color: Colors.white,
                                                   fontSize: 10,
@@ -571,8 +475,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                   fontSize: 8,
                                   fontWeight: FontWeight.w400)),
                         ),
-                        const Text(
-                           '0',
+                        const Text('0',
                             style: TextStyle(
                                 color: greenlight,
                                 fontSize: 12,
@@ -598,8 +501,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                   fontSize: 8,
                                   fontWeight: FontWeight.w400)),
                         ),
-                        const Text(
-                           '0',
+                        const Text('0',
                             style: TextStyle(
                                 color: greenlight,
                                 fontSize: 12,
@@ -804,279 +706,4 @@ class _HomeScreenState extends State<HomeScreen> {
     return Text(text, style: style, textAlign: TextAlign.left);
   }
 
-  // showTakeAKeyOverLay() async {
-  //   String query = '';
-  //   List<String> filteredCars = [];
-  //   Get.=bottomSheet(
-  //     SafeArea(
-  //       child: StatefulBuilder(
-  //         builder: (BuildContext context, StateSetter setState) {
-  //           return Container(
-  //             decoration: const BoxDecoration(
-  //               color: secondary,
-  //               borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-  //             ),
-  //             child: Padding(
-  //               padding:
-  //                   const EdgeInsets.symmetric(vertical: 15.0, horizontal: 15),
-  //               child: Column(
-  //                 mainAxisSize: MainAxisSize.min,
-  //                 crossAxisAlignment: CrossAxisAlignment.stretch,
-  //                 children: [
-  //                   Row(
-  //                     mainAxisAlignment: MainAxisAlignment.start,
-  //                     crossAxisAlignment: CrossAxisAlignment.start,
-  //                     children: [
-  //                       ClipRRect(
-  //                         borderRadius: BorderRadius.circular(25),
-  //                         child: Image.memory(
-  //                           base64Decode(
-  //                               loginController.currentvehicle!.vehiclePhoto),
-  //                           height: 150,
-  //                           width: 150, // Added width to maintain aspect ratio
-  //                           fit: BoxFit
-  //                               .cover, // Ensures the image fits within the given space
-  //                         ),
-  //                       ),
-  //                       const SizedBox(width: 20),
-  //                       Expanded(
-  //                         child: Column(
-  //                           crossAxisAlignment: CrossAxisAlignment.start,
-  //                           children: [
-  //                             Text(
-  //                               getFirstWords(
-  //                                   loginController.currentvehicle!.vehicleName,
-  //                                   2),
-  //                               style: GoogleFonts.lato(
-  //                                 color: primary,
-  //                                 fontWeight: FontWeight.bold,
-  //                                 fontSize: 24,
-  //                               ),
-  //                               overflow: TextOverflow
-  //                                   .ellipsis, // Avoids text overflow
-  //                             ),
-  //                             const SizedBox(height: 10),
-  //                             Text(
-  //                               loginController.currentvehicle!.vehicleType,
-  //                               style: GoogleFonts.lato(
-  //                                 color: primary,
-  //                                 fontWeight: FontWeight.bold,
-  //                                 fontSize: 16,
-  //                               ),
-  //                               overflow: TextOverflow.ellipsis,
-  //                             ),
-  //                             const SizedBox(height: 10),
-  //                             Text(
-  //                               loginController.currentvehicle!.vehicleNumber,
-  //                               style: GoogleFonts.lato(
-  //                                 color: greenlight,
-  //                                 fontWeight: FontWeight.bold,
-  //                                 fontSize: 14,
-  //                               ),
-  //                               overflow: TextOverflow.ellipsis,
-  //                             ),
-  //                             const SizedBox(height: 10),
-  //                             ElevatedButton(
-  //                               onPressed: () {
-  //                                 Get.offAll(() => CarDetailScreen(
-  //                                     loginController.currentvehicle!, true));
-  //                               },
-  //                               style: ButtonStyle(
-  //                                 elevation: MaterialStateProperty.all(8),
-  //                                 backgroundColor:
-  //                                     MaterialStateProperty.all(primary),
-  //                               ),
-  //                               child: Text(
-  //                                 'SELECT CAR',
-  //                                 style: GoogleFonts.lato(
-  //                                   fontSize: 16,
-  //                                   color: Colors.white,
-  //                                   fontWeight: FontWeight.bold,
-  //                                 ),
-  //                               ),
-  //                             ),
-  //                           ],
-  //                         ),
-  //                       ),
-  //                     ],
-  //                   ),
-  //                   SizedBox(height: 10),
-  //                   Divider(color: greenlight, thickness: 1),
-  //                   SizedBox(height: 10),
-  //                   Row(
-  //                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
-  //                     children: [
-  //                       Text(
-  //                         'CHANGE CAR',
-  //                         style: GoogleFonts.lato(
-  //                             color: primary,
-  //                             fontWeight: FontWeight.bold,
-  //                             fontSize: 16),
-  //                       ),
-  //                     ],
-  //                   ),
-  //                   const SizedBox(height: 10),
-  //                   TextFormField(
-  //                     controller: carNumberController,
-  //                     onChanged: (value) {
-  //                       query = value;
-  //                       filteredCars = loginController.vehicles
-  //                           .map((vehicle) => vehicle.vehicleNumber)
-  //                           .where((carNumber) => carNumber.contains(query))
-  //                           .toList();
-  //                       setState(() {});
-  //                     },
-  //                     decoration: InputDecoration(
-  //                       labelText: 'Enter Vehicle Number',
-  //                       labelStyle: GoogleFonts.lato(
-  //                           fontSize: 13,
-  //                           color: primary,
-  //                           fontWeight: FontWeight.w500),
-  //                       enabledBorder: UnderlineInputBorder(
-  //                         borderSide:
-  //                             BorderSide(color: primary.withOpacity(.7)),
-  //                       ),
-  //                       focusedBorder: UnderlineInputBorder(
-  //                         borderSide: BorderSide(color: primary),
-  //                       ),
-  //                     ),
-  //                   ),
-  //                   ListView.builder(
-  //                     shrinkWrap: true,
-  //                     itemCount: filteredCars.length,
-  //                     itemBuilder: (context, index) {
-  //                       return ListTile(
-  //                         title: Text(filteredCars[index]),
-  //                         onTap: () {
-  //                           carNumberController.text = filteredCars[index];
-  //                           filteredCars = [];
-  //                           setState(() {});
-  //                         },
-  //                       );
-  //                     },
-  //                   ),
-  //                   const SizedBox(height: 10),
-  //                   ElevatedButton(
-  //                     onPressed: () {
-  //                       String vehicleNumber = carNumberController.text;
-  //                       Vehicle selectedCar = loginController.vehicles
-  //                           .firstWhere((vehicle) =>
-  //                               vehicle.vehicleNumber == vehicleNumber);
-  //                       Get.back();
-  //                       Get.dialog(
-  //                         AlertDialog(
-  //                           backgroundColor: secondary,
-  //                           content: Column(
-  //                             mainAxisSize: MainAxisSize.min,
-  //                             children: [
-  //                               Container(
-  //                                 height: 200,
-  //                                 decoration: BoxDecoration(
-  //                                   borderRadius: BorderRadius.circular(10),
-  //                                   image: DecorationImage(
-  //                                     image: MemoryImage(base64Decode(
-  //                                         selectedCar.vehiclePhoto)),
-  //                                     fit: BoxFit.fill,
-  //                                   ),
-  //                                 ),
-  //                                 child: Stack(
-  //                                   fit: StackFit.expand,
-  //                                   children: [
-  //                                     DecoratedBox(
-  //                                       decoration: BoxDecoration(
-  //                                         borderRadius:
-  //                                             BorderRadius.circular(10),
-  //                                         border: Border.all(
-  //                                             color: greenlight.withOpacity(.2),
-  //                                             width: 2),
-  //                                       ),
-  //                                       child: Padding(
-  //                                         padding: const EdgeInsets.only(
-  //                                             left: 20.0,
-  //                                             right: 10.0,
-  //                                             top: 15,
-  //                                             bottom: 10.0),
-  //                                         child: Column(
-  //                                           mainAxisAlignment:
-  //                                               MainAxisAlignment.spaceBetween,
-  //                                           children: [
-  //                                             Row(
-  //                                               mainAxisAlignment:
-  //                                                   MainAxisAlignment.start,
-  //                                               children: [
-  //                                                 Text(selectedCar.vehicleName,
-  //                                                     style: TextStyle(
-  //                                                         color: Colors.white
-  //                                                             .withOpacity(.9),
-  //                                                         fontSize: 16,
-  //                                                         fontWeight:
-  //                                                             FontWeight.w500)),
-  //                                               ],
-  //                                             ),
-  //                                           ],
-  //                                         ),
-  //                                       ),
-  //                                     ),
-  //                                   ],
-  //                                 ),
-  //                               ),
-  //                               const SizedBox(height: 10),
-  //                               Text(
-  //                                   'Car Number : ${selectedCar.vehicleNumber}',
-  //                                   style: const TextStyle(
-  //                                       color: primary,
-  //                                       fontSize: 16,
-  //                                       fontWeight: FontWeight.w600)),
-  //                             ],
-  //                           ),
-  //                           actions: [
-  //                             TextButton(
-  //                               onPressed: () {
-  //                                 //uploadImage(selectedCar);
-
-  //                                 carNumberController.clear();
-  //                                 Get.back();
-  //                               },
-  //                               child: Text("CANCEL",
-  //                                   style: const TextStyle(
-  //                                       color: primary, fontSize: 16)),
-  //                             ),
-  //                             TextButton(
-  //                               onPressed: () {
-  //                                 Get.back();
-  //                                 carNumberController.clear();
-  //                                 loginController.currentvehicle = selectedCar;
-  //                                 // Get.offAll(() =>
-  //                                 //     CarDetailScreen(selectedCar, true));
-  //                               },
-  //                               child: Text("OK",
-  //                                   style: const TextStyle(
-  //                                       color: primary, fontSize: 16)),
-  //                             ),
-  //                           ],
-  //                         ),
-  //                       );
-  //                     },
-  //                     style: ButtonStyle(
-  //                       elevation: WidgetStateProperty.all(8),
-  //                       backgroundColor: WidgetStateProperty.all(primary),
-  //                     ),
-  //                     child: Text(
-  //                       'CHECK CAR',
-  //                       style: GoogleFonts.lato(
-  //                           fontSize: 16,
-  //                           color: Colors.white,
-  //                           fontWeight: FontWeight.bold),
-  //                     ),
-  //                   ),
-  //                 ],
-  //               ),
-  //             ),
-  //           );
-  //         },
-  //       ),
-  //     ),
-  //     isScrollControlled: true,
-  //   );
-  // }
 }
