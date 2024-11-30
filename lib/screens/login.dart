@@ -36,15 +36,16 @@ class LoginScreen extends StatelessWidget {
             ),
           ),
 
-          // Logo at the top
+          // Logo 
           Align(
             alignment: Alignment.topCenter,
             child: Padding(
               padding: const EdgeInsets.only(top: 100),
               child: Image.asset(
-                'assets/logo/ktraclogo.png',
-                height: 120,
-                width: 120,
+                // 'assets/logo/ktraclogo.png',
+                'assets/logo/ktraclogo-modified.png',
+                height: 180,
+                width: 180,
               ),
             ),
           ),

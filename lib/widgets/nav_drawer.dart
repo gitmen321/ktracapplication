@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:ktracapplication/Theme/pallet.dart';
+import 'package:ktracapplication/screens/login.dart';
 
 
 class NavDrawer extends StatelessWidget {
@@ -188,7 +189,7 @@ class NavDrawer extends StatelessWidget {
                           backgroundColor: Colors.white54,
                         ),
                         onPressed: () {
-                          // Placeholder for logout
+                          Navigator.pushReplacement(context, MaterialPageRoute(builder: (context)=>LoginScreen()));
                         },
                         child: const Text(
                           'LOGOUT',

@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:ktracapplication/screens/get_started.dart';
 import 'package:ktracapplication/screens/home.dart';
+import 'package:ktracapplication/screens/lang_choos.dart';
 import 'package:ktracapplication/screens/login.dart';
 import 'package:ktracapplication/widgets/nav_drawer.dart';
 
@@ -13,9 +15,10 @@ class MyApp extends StatelessWidget {
   // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
+    return  MaterialApp(
       debugShowCheckedModeBanner: false,
-      home: LoginScreen(),
+      home: GetStarted(),
+      // home: LoginScreen(),
       //home: NavDrawer(),
      // home: HomeScreen(),
     );
