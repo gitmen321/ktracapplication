@@ -105,7 +105,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                 context,
                                 MaterialPageRoute(
                                     builder: (context) =>
-                                         DetailScreen()));
+                                        const DetailScreen()));
                           },
                           child: Container(
                             decoration: BoxDecoration(
