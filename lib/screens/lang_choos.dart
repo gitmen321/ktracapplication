@@ -59,7 +59,7 @@ class _SelectLanguageScreenState extends State<SelectLanguageScreen> {
                 children: [
                   _buildLanguageOption('English'),
                   _buildLanguageOption('Malayalam'),
-                  _buildLanguageOption('Tamil'),
+                  // _buildLanguageOption('Tamil'),
                 ],
               ),
             ),
