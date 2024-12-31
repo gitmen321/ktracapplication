@@ -105,7 +105,7 @@ Future<void> saveLoginPEN(String pen) async {
                 } else {
                   // Show an error message if login fails
                   ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text("Invalid username")),
+                    const SnackBar(content: Text("Invalid Pen")),
                   );
                 }
               },
