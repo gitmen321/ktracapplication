@@ -4,10 +4,12 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:ktracapplication/Theme/color.dart';
 import 'package:ktracapplication/screens/navigation_screen.dart';
+import 'package:ktracapplication/services/mongo_service.dart';
 import 'package:ktracapplication/widgets/nav_drawer.dart';
 
 class HomeScreen extends StatefulWidget {
-  const HomeScreen({super.key});
+  final pen;
+  const HomeScreen({super.key, required this.pen});
 
   @override
   State<HomeScreen> createState() => _HomeScreenState();
@@ -24,87 +26,89 @@ class _HomeScreenState extends State<HomeScreen> {
   List<FlSpot> spots = [];
   bool isOnline = false;
 
-  void _showCustomDialog(BuildContext context) {
+  Map<String, dynamic>? currentTripData;
+
+  void _showCustomDialog(BuildContext context, String pen) async {
     int timerValue = 1800; // 30 minutes in seconds
     Timer? countdownTimer;
 
-    void handleAction(String action) {
-      countdownTimer?.cancel(); // Stop the timer
-      Navigator.of(context).pop(); // Close the dialog
-      if (action == "Accept" || action == "Reject") {
-        showDialog(
-          context: context,
-          barrierDismissible: false,
-          builder: (BuildContext context) {
-            return AlertDialog(
-              title: const Text(
-                "Are you sure?",
-                style: TextStyle(fontWeight: FontWeight.bold),
-              ),
-              content:
-                  const Text("Do you really want to proceed with this action?"),
-              actions: [
-                TextButton(
-                  onPressed: () =>
-                      Navigator.of(context).pop(), // Cancel confirmation
-                  child: const Text("Cancel"),
-                ),
-                ElevatedButton(
-                  onPressed: () {
-                    Navigator.of(context).pop(); // Close confirmation dialog
-                    if (action == "Accept") {
-                      setState(() {
-                        isTripAssigned = true; // Accept trip
-                      });
-                    } else if (action == "Reject") {
-                      setState(() {
-                        isTripAssigned = false; // Reject trip
-                      });
-                    }
-                  },
-                  child: const Text("Yes"),
-                ),
-              ],
-            );
-          },
-        );
-      }
+    final mongoService = MongoServices();
+
+    // Fetch driver/conductor details
+    final user = await mongoService.fetchDriverDetails(pen);
+    if (user == null) {
+      print("User not found.");
+      return;
     }
 
+    final objectId = user['_id'];
+
+    // Fetch pending trip details
+    final trip = await mongoService.fetchPendingTrip(objectId);
+    if (trip == null) {
+      print("No pending trips found for this driver.");
+      return;
+    }
+
+    // // Timer and trip acceptance logic♂
+    // void handleAction(String action) async {
+    //   countdownTimer?.cancel(); // Stop the timer
+    //   Navigator.of(context).pop(); // Close the dialog
+
+    //   if (action == "Accept") {
+    //     final isSuccess =
+    //         await mongoService.updateTripStatus(trip['_id'], 'upcoming');
+    //     if (isSuccess) {
+    //       print("Trip status updated to 'upcoming'.");
+    //     } else {
+    //       print("Failed to update trip status.");
+    //     }
+    //   } else if (action == "Reject") {
+    //     print("Trip rejected.");
+    //   }
+    // }
+
+    // Timer and trip acceptance logic
+void handleAction(String action) async {
+  countdownTimer?.cancel(); // Stop the timer
+  Navigator.of(context).pop(); // Close the dialog
+
+  if (action == "Accept") {
+    final isSuccess = await mongoService.updateTripStatus(trip['_id'], 'upcoming');
+    if (isSuccess) {
+      print("Trip status updated to 'upcoming'.");
+
+      // Update the state to display the current trip widget
+      setState(() {
+        isTripAssigned = true; // Mark that a trip is now assigned
+        currentTripData = trip; // Save the trip details
+      });
+    } else {
+      print("Failed to update trip status.");
+    }
+  } else if (action == "Reject") {
+    print("Trip rejected.");
+    // Optional: Clear trip assignment state if needed
+    setState(() {
+      isTripAssigned = false;
+      currentTripData = null;
+    });
+  }
+}
+
+
+    // Start countdown timer
     countdownTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
       if (timerValue <= 0) {
         countdownTimer?.cancel();
         Navigator.of(context).pop();
-        setState(() {
-          isTripAssigned = true;
-        });
-        showDialog(
-          context: context,
-          builder: (context) => AlertDialog(
-            title: const Text(
-              "Trip Accepted",
-              style: TextStyle(fontWeight: FontWeight.bold),
-            ),
-            content: const Text(
-              "Time expired. Trip has been accepted automatically.",
-              style: TextStyle(fontSize: 16),
-            ),
-            actions: [
-              ElevatedButton(
-                onPressed: () => Navigator.of(context).pop(),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.green,
-                ),
-                child: const Text("OK"),
-              ),
-            ],
-          ),
-        );
+        handleAction("Accept");
       } else {
         timerValue--;
       }
     });
 
+    // Show dialog with trip details
     showDialog(
       context: context,
       barrierDismissible: false,
@@ -134,23 +138,27 @@ class _HomeScreenState extends State<HomeScreen> {
                     Text(
                       "Trip Scheduled",
                       style: GoogleFonts.lato(
-                          color: Colors.black,
-                          fontWeight: FontWeight.bold,
-                          fontSize: 24),
+                        color: Colors.black,
+                        fontWeight: FontWeight.bold,
+                        fontSize: 24,
+                      ),
                     ),
                     const SizedBox(height: 10),
                     Text(
-                      "Kannur to Eranakulam",
+                      "${trip['departure_location']['depo']} to ${trip['arrival_location']['depo']}",
                       style: GoogleFonts.lato(
-                          color: Colors.black,
-                          fontWeight: FontWeight.w700,
-                          fontSize: 18),
+                        color: Colors.black,
+                        fontWeight: FontWeight.w700,
+                        fontSize: 18,
+                      ),
                     ),
                     const SizedBox(height: 10),
                     Text(
-                      "Start Time: 10:00 AM",
-                      style:
-                          GoogleFonts.lato(color: Colors.black54, fontSize: 16),
+                      "Start Time: ${trip['start_time']}",
+                      style: GoogleFonts.lato(
+                        color: Colors.black54,
+                        fontSize: 16,
+                      ),
                     ),
                     const SizedBox(height: 20),
                     Text(
@@ -180,8 +188,9 @@ class _HomeScreenState extends State<HomeScreen> {
                           child: Text(
                             "Accept",
                             style: GoogleFonts.lato(
-                                color: Colors.white,
-                                fontWeight: FontWeight.w700),
+                              color: Colors.white,
+                              fontWeight: FontWeight.w700,
+                            ),
                           ),
                         ),
                         ElevatedButton(
@@ -199,8 +208,9 @@ class _HomeScreenState extends State<HomeScreen> {
                           child: Text(
                             "Reject",
                             style: GoogleFonts.lato(
-                                color: Colors.white,
-                                fontWeight: FontWeight.w700),
+                              color: Colors.white,
+                              fontWeight: FontWeight.w700,
+                            ),
                           ),
                         ),
                       ],
@@ -216,6 +226,7 @@ class _HomeScreenState extends State<HomeScreen> {
       countdownTimer?.cancel();
     });
   }
+
 
   @override
   Widget build(BuildContext context) {
@@ -243,19 +254,56 @@ class _HomeScreenState extends State<HomeScreen> {
               alignment: Alignment.topRight,
               child: Switch(
                 value: isOnline,
-                onChanged: (value) {
+                onChanged: (value) async {
                   setState(() {
                     isOnline = value;
-                    if (value) {
-                      _showNotification(context);
-                      _showCustomDialog(context);
-
-                    } else {
-                      setState(() {
-                        isTripAssigned = false;
-                      });
-                    }
                   });
+
+                  if (value) {
+                    final mongoService = MongoServices();
+
+                    // Fetch the ObjectId using PEN
+                    final objectId = await mongoService
+                        .fetchDriverOrConductorObjectId(widget.pen);
+
+                    if (objectId == null) {
+                      print(
+                          'No driver or conductor found for PEN: ${widget.pen}');
+                      return;
+                    }
+
+                    // Check for pending trips
+                    final pendingTrip =
+                        await mongoService.fetchPendingTrip(objectId);
+
+                    if (pendingTrip != null) {
+                      // Show custom dialog if a pending trip exists
+                      _showNotification(context);
+                      _showCustomDialog(context, widget.pen);
+                    } else {
+                      // Check for upcoming trips
+                      final upcomingTrip =
+                          await mongoService.fetchUpcomingTrip(objectId);
+
+                      if (upcomingTrip != null) {
+                        setState(() {
+                          isTripAssigned = true;
+                          currentTripData =
+                              upcomingTrip; // Assign upcoming trip data
+                        });
+                      } else {
+                        setState(() {
+                          isTripAssigned = false; // No trips assigned
+                        });
+                      }
+                    }
+                  } else {
+                    // Offline mode - Clear trip assignment
+                    setState(() {
+                      isTripAssigned = false;
+                      currentTripData = null;
+                    });
+                  }
                 },
                 activeColor: Colors.white,
                 activeTrackColor: Colors.green,
@@ -294,31 +342,30 @@ class _HomeScreenState extends State<HomeScreen> {
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                isTripAssigned?
-                GestureDetector(
-                  onTap: () {
-                    Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                            builder: (context) => 
-                             NavigationScreen()));
-                  },
-                  child: Container(
-                    decoration: BoxDecoration(
-                      color: greenlight,
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: const Padding(
-                      padding: EdgeInsets.all(12.0),
-                      child: Text("START JOURNEY",
-                          style: TextStyle(
-                              color: Colors.white,
-                              fontSize: 12,
-                              fontWeight: FontWeight.w700)),
-                    ),
-                  ),
-                )
-                : Container(),
+                isTripAssigned
+                    ? GestureDetector(
+                        onTap: () {
+                          Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                  builder: (context) => NavigationScreen()));
+                        },
+                        child: Container(
+                          decoration: BoxDecoration(
+                            color: greenlight,
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: const Padding(
+                            padding: EdgeInsets.all(12.0),
+                            child: Text("START JOURNEY",
+                                style: TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.w700)),
+                          ),
+                        ),
+                      )
+                    : Container(),
               ],
             ),
             const SizedBox(height: 20),
@@ -327,6 +374,8 @@ class _HomeScreenState extends State<HomeScreen> {
       ),
     );
   }
+
+  //just new above
 
   void _showNotification(BuildContext context) {
     OverlayEntry overlayEntry = OverlayEntry(
@@ -390,7 +439,7 @@ class _HomeScreenState extends State<HomeScreen> {
     return Column(
       children: [
         Text(
-          "NO TRIP ASSIGNED",
+          "You are offline",
           style: GoogleFonts.lato(
             color: primary,
             fontSize: 16,
@@ -462,7 +511,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         TextStyle(color: primary, fontWeight: FontWeight.w400),
                   ),
                   const SizedBox(height: 10),
-                  const Text('Not Scheduled',
+                  const Text('Offline',
                       style: TextStyle(
                           fontSize: 12,
                           color: primary,
@@ -489,7 +538,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     Text(
                         // ignore: unnecessary_null_comparison
 
-                        "Not Assigned",
+                        "You are offline",
                         style: TextStyle(
                             color: greenlight, fontWeight: FontWeight.w500)),
                     SizedBox(height: 10),
@@ -503,7 +552,12 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
+
   Widget buildCurrentTrip() {
+    if (currentTripData == null) {
+      return const SizedBox();
+    }
+
     return Column(
       children: [
         Text("CURRENT TRIP",
@@ -515,239 +569,54 @@ class _HomeScreenState extends State<HomeScreen> {
             borderRadius: BorderRadius.circular(20),
           ),
           margin: const EdgeInsets.symmetric(vertical: 20, horizontal: 20),
-          padding:
-              const EdgeInsets.only(top: 10, bottom: 10, right: 20, left: 20),
+          padding: const EdgeInsets.all(20),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Column(
-                mainAxisAlignment: MainAxisAlignment.start,
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text("Trip No: 123456",
-                      style: TextStyle(
+                  Text("Trip No: ${currentTripData?['trip_id']}",
+                      style: const TextStyle(
                           color: primary, fontWeight: FontWeight.w400)),
-                  const SizedBox(
-                    height: 10,
-                  ),
-                  SizedBox(
-                    width: MediaQuery.of(context).size.width * 0.35,
-                    child: const Text('Kannur',
-                        // overflow: TextOverflow.ellipsis,
-                        maxLines: 2,
-                        style: TextStyle(
-                            fontSize: 16,
-                            color: greenlight,
-                            fontWeight: FontWeight.w800)),
-                  ),
-                  const Text(('10/11/2024'),
-                      style: TextStyle(
+                  const SizedBox(height: 10),
+                  Text(currentTripData?['departure_location']['depo'],
+                      style: const TextStyle(
+                          fontSize: 16,
+                          color: greenlight,
+                          fontWeight: FontWeight.w800)),
+                  Text(currentTripData?['start_time'],
+                      style: const TextStyle(
                           color: primary,
                           fontWeight: FontWeight.w400,
                           fontSize: 13)),
-                  const Text(
-                    ('10:00 am'),
-                    style: TextStyle(
-                        color: primary,
-                        fontWeight: FontWeight.w400,
-                        fontSize: 13),
-                  ),
-                  const SizedBox(
-                    height: 15,
-                  ),
-                  SizedBox(
-                    width: MediaQuery.of(context).size.width * 0.35,
-                    child: const Text('Eranakulam',
-                        // overflow: TextOverflow.ellipsis,
-                        maxLines: 2,
-                        style: TextStyle(
-                            fontSize: 16,
-                            color: greenlight,
-                            fontWeight: FontWeight.w800)),
-                  ),
-                  const Text(('10/11/2024'),
-                      style: TextStyle(
-                          color: primary, fontWeight: FontWeight.w400)),
-                  const Text(
-                    ('05:00 pm'),
-                    style:
-                        TextStyle(color: primary, fontWeight: FontWeight.w400),
-                  ),
-                  const SizedBox(height: 10),
-                  const Text('Trip Scheduled',
-                      style: TextStyle(
-                          fontSize: 12,
+                  const SizedBox(height: 15),
+                  Text(currentTripData?['arrival_location']['depo'],
+                      style: const TextStyle(
+                          fontSize: 16,
+                          color: greenlight,
+                          fontWeight: FontWeight.w800)),
+                  Text(currentTripData?['end_time'],
+                      style: const TextStyle(
                           color: primary,
-                          fontWeight: FontWeight.w400)),
-                  const SizedBox(height: 8),
-                  SizedBox(
-                    width: MediaQuery.of(context).size.width * 0.35,
-                    child: const Text(" ",
-                        maxLines: 2,
-                        overflow: TextOverflow.ellipsis,
-                        style: TextStyle(
-                            color: Colors.grey,
-                            fontSize: 13,
-                            fontWeight: FontWeight.w400)),
-                  ),
+                          fontWeight: FontWeight.w400,
+                          fontSize: 13)),
                 ],
               ),
-              SizedBox(
-                width: MediaQuery.of(context).size.width * 0.40,
-                child: const Column(
-                  mainAxisAlignment: MainAxisAlignment.start,
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                        // ignore: unnecessary_null_comparison
-
-                        "In Progress",
-                        style: TextStyle(
-                            color: greenlight, fontWeight: FontWeight.w500)),
-                    SizedBox(height: 10),
-                  ],
-                ),
-              ),
+              const Text("In Progress",
+                  style: TextStyle(
+                      color: greenlight, fontWeight: FontWeight.w500)),
             ],
           ),
         ),
         Container(
-            margin:
-                const EdgeInsets.only(top: 5, bottom: 10, left: 30, right: 30),
-            child: Divider(color: greenlight.withOpacity(.3), thickness: 1)),
+          margin:
+              const EdgeInsets.only(top: 5, bottom: 10, left: 30, right: 30),
+          child: Divider(color: greenlight.withOpacity(.3), thickness: 1),
+        ),
       ],
     );
   }
-
-  // Widget buildTripCard() {
-  //   return Container(
-  //     margin: const EdgeInsets.only(top: 20, bottom: 30, left: 5, right: 5),
-  //     child: SizedBox(
-  //       height: MediaQuery.of(context).size.width / 2.7, // Card height
-  //       child: PageView.builder(
-  //         itemCount: 1,
-  //         controller: PageController(viewportFraction: 0.36, initialPage: 2),
-  //         onPageChanged: (index) => setState(() => _index = index),
-  //         itemBuilder: (context, index) {
-  //           double scale =
-  //               _index == index ? 1 : .7; // Scale up if it's the middle card
-  //           return AnimatedContainer(
-  //             duration: const Duration(milliseconds: 400),
-  //             curve: Curves.fastOutSlowIn,
-  //             child: Transform.scale(
-  //               scale: scale,
-  //               child: Container(
-  //                 //width: MediaQuery.of(context).size.width / 2.5,
-  //                 decoration: BoxDecoration(
-  //                   borderRadius: BorderRadius.circular(10),
-  //                   image: DecorationImage(
-  //                     image: MemoryImage(base64Decode(('vehicle photo'))),
-  //                     fit: BoxFit.fill, // Make the image fill the container
-  //                   ),
-  //                 ),
-  //                 child: Stack(
-  //                   fit: StackFit.expand,
-  //                   children: [
-  //                     DecoratedBox(
-  //                       decoration: BoxDecoration(
-  //                         borderRadius: BorderRadius.circular(10),
-  //                         color: _index == index
-  //                             ? primary.withOpacity(.3)
-  //                             : Colors.black.withOpacity(.2),
-  //                       ),
-  //                       child: Padding(
-  //                         padding: const EdgeInsets.only(
-  //                             left: 20.0, right: 10.0, top: 15, bottom: 10.0),
-  //                         child: Column(
-  //                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
-  //                           children: [
-  //                             const Row(
-  //                               mainAxisAlignment:
-  //                                   MainAxisAlignment.spaceBetween,
-  //                               children: [
-  //                                 Icon(
-  //                                   Icons.circle_outlined,
-  //                                   color: Colors.white,
-  //                                   size: 15,
-  //                                 ),
-  //                               ],
-  //                             ),
-  //                             Column(
-  //                               mainAxisAlignment: MainAxisAlignment.start,
-  //                               crossAxisAlignment: CrossAxisAlignment.start,
-  //                               children: [
-  //                                 // Text("${loginController.trips[index].tripStartLocation} - ${loginController.trips[index].tripDestination.}", style: const TextStyle(color:Colors.white, fontSize: 12, fontWeight: FontWeight.bold)),
-  //                                 const Text("Kannur - Eranakulam",
-  //                                     style: TextStyle(
-  //                                         color: Colors.white,
-  //                                         fontSize: 12,
-  //                                         fontWeight: FontWeight.bold)),
-  //                                 Container(
-  //                                   width: MediaQuery.of(context).size.width *
-  //                                       0.20,
-  //                                   color: greenlight,
-  //                                   child: const Padding(
-  //                                     padding:
-  //                                         EdgeInsets.symmetric(horizontal: 3.0),
-  //                                     child: Row(
-  //                                       children: [
-  //                                         Icon(
-  //                                           Icons.calendar_today,
-  //                                           color: Colors.white,
-  //                                           size: 10,
-  //                                         ),
-  //                                         SizedBox(width: 3),
-  //                                         //Text(loginController.trips[index].tripDate, style: const TextStyle(color:Colors.white, fontSize: 10, fontWeight: FontWeight.w400)),
-  //                                         Text(('10/11/2024'),
-  //                                             style: TextStyle(
-  //                                                 color: Colors.white,
-  //                                                 fontSize: 10,
-  //                                                 fontWeight: FontWeight.w400)),
-  //                                       ],
-  //                                     ),
-  //                                   ),
-  //                                 ),
-  //                                 const SizedBox(height: 2),
-  //                                 Container(
-  //                                   width: MediaQuery.of(context).size.width *
-  //                                       0.28,
-  //                                   color: greenlight,
-  //                                   child: const Padding(
-  //                                     padding:
-  //                                         EdgeInsets.symmetric(horizontal: 3.0),
-  //                                     child: Row(
-  //                                       children: [
-  //                                         Icon(
-  //                                           Icons.access_time_rounded,
-  //                                           color: Colors.white,
-  //                                           size: 10,
-  //                                         ),
-  //                                         SizedBox(width: 3),
-  //                                         Text("12:00AM- 6:00PM",
-  //                                             style: TextStyle(
-  //                                                 color: Colors.white,
-  //                                                 fontSize: 10,
-  //                                                 fontWeight: FontWeight.w400)),
-  //                                       ],
-  //                                     ),
-  //                                   ),
-  //                                 ),
-  //                               ],
-  //                             ),
-  //                           ],
-  //                         ),
-  //                       ),
-  //                     ),
-  //                   ],
-  //                 ),
-  //               ),
-  //             ),
-  //           );
-  //         },
-  //       ),
-  //     ),
-  //   );
-  // }
 
   Widget buildWorkChart() {
     // List<FlSpot> spots = List.generate(12, (index) => FlSpot(index + 1, getTripsForMonth(index + 1).toDouble()));

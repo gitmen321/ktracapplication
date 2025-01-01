@@ -200,7 +200,7 @@ void showDetailOverLay(BuildContext context) {
                               //     return buildStopAlert();
                               //   },
                               // );
-                              Navigator.push(context, MaterialPageRoute(builder: (context) => HomeScreen()));
+                              // Navigator.push(context, MaterialPageRoute(builder: (context) => HomeScreen()));
                               //onTripEnd();
                             },
                             style: ButtonStyle(

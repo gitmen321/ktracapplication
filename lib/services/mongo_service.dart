@@ -4,6 +4,113 @@ class MongoServices {
   static const String mongoDbUri =
       'mongodb+srv://Whitematrix2024:upwGSSlVQ1lcV2Vr@cluster0.11vvw.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0';
 
+
+
+  /// Fetch the ObjectId of a driver or conductor based on PEN
+  Future<String?> fetchDriverOrConductorObjectId(String pen) async {
+    try {
+      final db = await mongo.Db.create(mongoDbUri);
+      await db.open();
+
+      // Check in the drivers collection
+      final driversCollection = db.collection('drivers');
+      final driver = await driversCollection.findOne(mongo.where.eq('PEN', pen));
+
+      if (driver != null) {
+        await db.close();
+        return driver['_id'].toHexString(); // Return the ObjectId as a string
+      }
+
+      // Check in the conductors collection
+      final conductorsCollection = db.collection('conductors');
+      final conductor = await conductorsCollection.findOne(mongo.where.eq('PEN', pen));
+
+      if (conductor != null) {
+        await db.close();
+        return conductor['_id'].toHexString(); // Return the ObjectId as a string
+      }
+
+      await db.close();
+      return null; // No matching driver or conductor found
+    } catch (e) {
+      print('Error fetching ObjectId: $e');
+      return null;
+    }
+  }
+
+  /// Fetch pending trip for the given ObjectId
+  Future<Map<String, dynamic>?> fetchPendingTrip(String objectId) async {
+    try {
+      final db = await mongo.Db.create(mongoDbUri);
+      await db.open();
+
+      final tripCollection = db.collection('trips');
+      final trip = await tripCollection.findOne(
+        mongo.where.eq('driver_id', mongo.ObjectId.parse(objectId)).eq('status', 'pending'),
+      );
+
+      if (trip != null) {
+        trip['_id'] = trip['_id'].toHexString(); // Convert ObjectId to String
+        await db.close();
+        return trip;
+      }
+
+      await db.close();
+      return null; // No pending trip found
+    } catch (e) {
+      print('Error fetching pending trip: $e');
+      return null;
+    }
+  }
+
+  /// Fetch upcoming trip for the given ObjectId
+  Future<Map<String, dynamic>?> fetchUpcomingTrip(String objectId) async {
+    try {
+      final db = await mongo.Db.create(mongoDbUri);
+      await db.open();
+
+      final tripCollection = db.collection('trips');
+      final trip = await tripCollection.findOne(
+        mongo.where.eq('driver_id', mongo.ObjectId.parse(objectId)).eq('status', 'upcoming'),
+      );
+
+      if (trip != null) {
+        trip['_id'] = trip['_id'].toHexString(); // Convert ObjectId to a readable string
+        await db.close();
+        return trip;
+      }
+
+      await db.close();
+      return null; // No upcoming trip found
+    } catch (e) {
+      print('Error fetching upcoming trip: $e');
+      return null;
+    }
+  }
+
+
+
+  /// Update trip status
+  Future<bool> updateTripStatus(String tripId, String newStatus) async {
+    try {
+      final db = await mongo.Db.create(mongoDbUri);
+      await db.open();
+
+      final tripCollection = db.collection('trips');
+      final result = await tripCollection.updateOne(
+        mongo.where.eq('_id', mongo.ObjectId.parse(tripId)),
+        mongo.modify.set('status', newStatus),
+      );
+
+      await db.close();
+      return result.isSuccess;
+    } catch (e) {
+      print('Error updating trip status: $e');
+      return false;
+    }
+  }
+
+
   /// Standalone function to validate login
 Future<String?> validateLogin(String pen) async {
   const String mongoUri = mongoDbUri;
