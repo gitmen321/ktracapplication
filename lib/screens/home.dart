@@ -7,6 +7,8 @@ import 'package:ktracapplication/screens/navigation_screen.dart';
 import 'package:ktracapplication/services/mongo_service.dart';
 import 'package:ktracapplication/widgets/nav_drawer.dart';
 
+import '../services/location_tracker.dart';
+
 class HomeScreen extends StatefulWidget {
   final pen;
   const HomeScreen({super.key, required this.pen});
@@ -16,6 +18,7 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
+  final mongoService = MongoServices();
   late DateTime now;
   late DateTime today;
   // final currentTrip = 0;
@@ -344,11 +347,17 @@ void handleAction(String action) async {
               children: [
                 isTripAssigned
                     ? GestureDetector(
-                        onTap: () {
-                          Navigator.push(
+                        onTap: () async{
+
+                          // Call the tracking function
+                           LocationTracker.trackDeviceLocation(currentTripData?['trip_id']);
+                          mongoService.updateTripStatustoLive(currentTripData?['trip_id'],'live');
+
+
+                           Navigator.push(
                               context,
                               MaterialPageRoute(
-                                  builder: (context) => NavigationScreen()));
+                                  builder: (context) => NavigationScreen(pen: widget.pen,tripId:currentTripData?['trip_id'],)));
                         },
                         child: Container(
                           decoration: BoxDecoration(

@@ -3,25 +3,33 @@ import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:ktracapplication/screens/home.dart';
 
 import '../Theme/pallet.dart';
+import '../services/location_tracker.dart';
+import '../services/mongo_service.dart';
 
-void main() => runApp(MyApp());
-
-class MyApp extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    return MaterialApp(
-      debugShowCheckedModeBanner: false,
-      home: NavigationScreen(),
-    );
-  }
-}
+// void main() => runApp(MyApp());
+//
+// class MyApp extends StatelessWidget {
+//   @override
+//   Widget build(BuildContext context) {
+//     return MaterialApp(
+//       debugShowCheckedModeBanner: false,
+//       home: NavigationScreen(),
+//     );
+//   }
+// }
 
 class NavigationScreen extends StatefulWidget {
+
+  final pen;
+  final tripId;
+  const NavigationScreen({super.key, required this.pen, this.tripId});
+
   @override
   _MapScreenState createState() => _MapScreenState();
 }
 
 class _MapScreenState extends State<NavigationScreen> {
+  final mongoService = MongoServices();
   late GoogleMapController mapController;
 
   final LatLng _initialPosition = const LatLng(8.4795, 76.9468); // Replace with actual coordinates
@@ -86,7 +94,7 @@ class _MapScreenState extends State<NavigationScreen> {
                 FloatingActionButton(
                   heroTag: "menuButton",
                   onPressed: () {
-                    showDetailOverLay(context);
+                    showDetailOverLay(context,widget.pen,widget.tripId);
                     // Implement menu function
                   },
                   backgroundColor: Pallet.primary,
@@ -138,7 +146,8 @@ class _MapScreenState extends State<NavigationScreen> {
 
 
 
-void showDetailOverLay(BuildContext context) {
+void showDetailOverLay(BuildContext context,dynamic pen,dynamic tripId) {
+  final mongoService = MongoServices();
   showModalBottomSheet(
     context: context,
     isScrollControlled: true,
@@ -194,14 +203,16 @@ void showDetailOverLay(BuildContext context) {
                         children: [
                           ElevatedButton(
                             onPressed: () {
+                              LocationTracker.stopTrackingLocation();
                               // showDialog(
                               //   context: context,
                               //   builder: (BuildContext context) {
                               //     return buildStopAlert();
                               //   },
                               // );
-                              // Navigator.push(context, MaterialPageRoute(builder: (context) => HomeScreen()));
-                              //onTripEnd();
+                               mongoService.updateTripStatustoLive(tripId, "completed");
+                               Navigator.push(context, MaterialPageRoute(builder: (context) => HomeScreen(pen: pen,)));
+                               //onTripEnd();
                             },
                             style: ButtonStyle(
                               backgroundColor: WidgetStateProperty.all(Pallet.primary),

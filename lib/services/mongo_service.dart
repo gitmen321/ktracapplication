@@ -110,6 +110,32 @@ class MongoServices {
     }
   }
 
+  /// Update trip status
+  Future<void> updateTripStatustoLive(String tripId, String newStatus) async {
+    try {
+      final db = await mongo.Db.create(mongoDbUri);
+      await db.open();
+
+      final tripCollection = db.collection('trips');
+      final result = await tripCollection.updateOne(
+        mongo.where.eq('trip_id', tripId),
+        mongo.modify.set('status', newStatus),
+      );
+
+      await db.close();
+      // Log the outcome
+      if (result.isSuccess) {
+        print('Trip status updated to "$newStatus" for trip_id: $tripId');
+      } else {
+        print('Failed to update trip status for trip_id: $tripId');
+      }
+
+    } catch (e) {
+      print('Error updating trip status: $e');
+
+    }
+  }
+
 
   /// Standalone function to validate login
 Future<String?> validateLogin(String pen) async {
